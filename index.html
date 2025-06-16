@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>World Vision Scoreboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+    textarea, input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #aaa;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🌍 World Vision Scoreboard</h1>
+
+<h2>🏳️ Finalist Countries (Max 30)</h2>
+<textarea id="countriesInput" rows="10" placeholder="Enter up to 30 countries (one per line)..."></textarea>
+
+<h2>👩‍⚖️ National Jury Votes (60 juries, classic system)</h2>
+<textarea id="juryVotesInput" rows="10" placeholder="Format: Country1: 12,10,8,7,6,5,4,3,2,1"></textarea>
+
+<h2>🗳️ Public Vote</h2>
+<button onclick="generateRandomPublicVotes()">Generate Random Public Votes</button>
+<textarea id="publicVotesInput" rows="10" placeholder="Or enter manually: Country1: 200, Country2: 150..."></textarea>
+
+<button onclick="calculateScoreboard()">Show Final Scoreboard</button>
+
+<h2>📊 Scoreboard</h2>
+<table id="scoreboard">
+  <thead>
+    <tr><th>Country</th><th>Jury Points</th><th>Public Points</th><th>Total</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+function parseVotes(input) {
+  const lines = input.split("\n");
+  const points = {};
+  for (const line of lines) {
+    const parts = line.split(":");
+    if (parts.length < 2) continue;
+    const country = parts[0].trim();
+    const scores = parts[1].split(",").map(s => parseInt(s.trim(), 10));
+    const countries = document.getElementById("countriesInput").value.split("\n").map(c => c.trim()).filter(Boolean);
+    if (!points[country]) points[country] = 0;
+    for (let i = 0; i < Math.min(scores.length, 10); i++) {
+      points[country] += scores[i];
+    }
+  }
+  return points;
+}
+
+function parsePublicVotes(input) {
+  const lines = input.split(",");
+  const points = {};
+  for (const line of lines) {
+    const parts = line.split(":");
+    if (parts.length < 2) continue;
+    const country = parts[0].trim();
+    const value = parseInt(parts[1].trim(), 10);
+    points[country] = value;
+  }
+  return points;
+}
+
+function generateRandomPublicVotes() {
+  const countries = document.getElementById("countriesInput").value.split("\n").map(c => c.trim()).filter(Boolean);
+  const publicVotes = countries.map(c => `${c}: ${Math.floor(Math.random() * 300) + 1}`);
+  document.getElementById("publicVotesInput").value = publicVotes.join(", ");
+}
+
+function calculateScoreboard() {
+  const countries = document.getElementById("countriesInput").value.split("\n").map(c => c.trim()).filter(Boolean);
+  const juryVotes = parseVotes(document.getElementById("juryVotesInput").value);
+  const publicVotes = parsePublicVotes(document.getElementById("publicVotesInput").value);
+  const scoreboard = document.getElementById("scoreboard").getElementsByTagName("tbody")[0];
+  scoreboard.innerHTML = "";
+
+  countries.forEach(country => {
+    const jury = juryVotes[country] || 0;
+    const publicV = publicVotes[country] || 0;
+    const total = jury + publicV;
+    const row = `<tr><td>${country}</td><td>${jury}</td><td>${publicV}</td><td><strong>${total}</strong></td></tr>`;
+    scoreboard.innerHTML += row;
+  });
+}
+</script>
+
+</body>
+</html>
